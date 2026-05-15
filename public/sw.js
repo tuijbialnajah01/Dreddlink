@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dreddlink-cache-v2';
+const CACHE_NAME = 'dreddlink-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html'
@@ -33,6 +33,13 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+  // Don't intercept Firebase/Google API requests
+  if (url.hostname.includes('googleapis.com') || 
+      url.hostname.includes('gstatic.com') || 
+      url.hostname.includes('firebase')) {
+    return;
+  }
 
   // For images, use Cache-First
   if (url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp)$/)) {
