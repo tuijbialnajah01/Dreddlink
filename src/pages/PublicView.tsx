@@ -60,7 +60,7 @@ export default function PublicView() {
         </motion.p>
       </header>
 
-      <main className="z-10 w-full max-w-6xl flex-grow mb-16">
+      <main className="z-10 w-full max-w-6xl flex-grow mb-16 px-2 sm:px-0">
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-primary"></div>
@@ -71,7 +71,7 @@ export default function PublicView() {
             <p className="text-gray-500 mt-2">Check back later for exciting groups.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8 w-full">
             {groups.map((group, index) => (
               <motion.div 
                 key={group.id}
@@ -80,28 +80,32 @@ export default function PublicView() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="glass-card flex flex-col overflow-hidden group"
               >
-                <div className="h-48 overflow-hidden relative">
-                   <div className="absolute inset-0 bg-gradient-to-t from-base-900/80 to-transparent z-10" />
+                <div className="aspect-square overflow-hidden relative">
+                   <div className="absolute inset-0 bg-gradient-to-t from-base-900/90 via-base-900/20 to-transparent z-10" />
                    <img 
                     src={group.imageUrl || 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80'} 
                     alt={group.name}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80';
+                      const target = e.target as HTMLImageElement;
+                      if (!target.src.includes('unsplash.com')) {
+                        target.src = 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80';
+                      }
                     }}
                   />
-                  <div className="absolute bottom-4 left-4 z-20">
-                    <h2 className="text-2xl font-bold font-display tracking-tight text-white">{group.name}</h2>
+                  <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-20">
+                    <h2 className="text-base sm:text-lg md:text-xl font-bold font-display tracking-tight text-white leading-tight line-clamp-2">{group.name}</h2>
                   </div>
                 </div>
-                <div className="p-6 flex-grow flex items-end">
+                <div className="p-3 sm:p-5 flex-grow flex items-end">
                   <a 
                     href={group.joinLink} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/10"
+                    className="w-full inline-flex justify-center items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/10 text-sm sm:text-base"
                   >
-                    Join Group <ExternalLink className="w-4 h-4" />
+                    Join <span className="hidden sm:inline">Group</span> <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </a>
                 </div>
               </motion.div>

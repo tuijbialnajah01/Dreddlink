@@ -1,15 +1,30 @@
-const CACHE_NAME = 'dreddlink-cache-v1';
+const CACHE_NAME = 'dreddlink-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html'
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Force the waiting service worker to become the active service worker.
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         return cache.addAll(urlsToCache);
       })
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.filter(cacheName => {
+          return cacheName.startsWith('dreddlink-') && cacheName !== CACHE_NAME;
+        }).map(cacheName => {
+          return caches.delete(cacheName);
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -19,19 +34,46 @@ self.addEventListener('fetch', event => {
   
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request).then(fetchRes => {
-        return caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, fetchRes.clone());
-          return fetchRes;
+  // For images, use Cache-First
+  if (url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp)$/)) {
+    event.respondWith(
+      caches.match(event.request).then(response => {
+        return response || fetch(event.request).then(fetchRes => {
+          return caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, fetchRes.clone());
+            return fetchRes;
+          });
         });
-      });
-    }).catch(() => {
-      // Offline fallback: try to return index.html for navigation requests
-      if (event.request.mode === 'navigate') {
-        return caches.match('/index.html');
-      }
-    })
+      })
+    );
+    return;
+  }
+
+  // For everything else (HTML, JS, CSS, API calls), use Network-First
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Only cache valid responses
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try to return from cache
+        return caches.match(event.request).then(response => {
+          if (response) {
+            return response;
+          }
+          // Offline fallback for navigation requests
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          return undefined;
+        });
+      })
   );
 });
