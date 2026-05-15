@@ -97,13 +97,9 @@ export default function PublicView() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-center py-20 px-6 glass-card mx-auto max-w-lg mt-10 md:mt-20"
+            className="text-center py-20 px-6 mx-auto mt-10 md:mt-20"
           >
-            <div className="w-16 h-16 hover:rotate-12 transition-transform duration-500 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <ExternalLink className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-2xl text-white font-display font-medium tracking-tight">No Communities Yet</h3>
-            <p className="text-gray-400 mt-3 text-sm sm:text-base leading-relaxed">We're curating the best groups. Check back soon for exclusive access to premium communities.</p>
+            <h3 className="text-xl sm:text-2xl text-gray-400 font-medium tracking-tight">No groups available</h3>
           </motion.div>
         ) : (
           <motion.div 
