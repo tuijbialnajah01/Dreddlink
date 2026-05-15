@@ -81,18 +81,12 @@ export default function PublicView() {
                 className="glass-card flex flex-col overflow-hidden group"
               >
                 <div className="aspect-square overflow-hidden relative">
-                   <div className="absolute inset-0 bg-gradient-to-t from-base-900/90 via-base-900/20 to-transparent z-10" />
+                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-base-900/90 to-transparent z-10" />
                    <img 
-                    src={group.imageUrl || 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80'} 
+                    src={group.imageUrl} 
                     alt={group.name}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (!target.src.includes('unsplash.com')) {
-                        target.src = 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80';
-                      }
-                    }}
                   />
                   <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-20">
                     <h2 className="text-base sm:text-lg md:text-xl font-bold font-display tracking-tight text-white leading-tight line-clamp-2">{group.name}</h2>
