@@ -50,14 +50,6 @@ export default function PublicView() {
         >
           DʀΞᴅᴅLɪɴᴋ
         </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-4 text-base md:text-lg text-gray-400 font-medium tracking-wide"
-        >
-          Premium Community Networks
-        </motion.p>
       </header>
 
       <main className="z-10 w-full max-w-6xl flex-grow mb-16 px-2 sm:px-0">
@@ -87,6 +79,9 @@ export default function PublicView() {
                     alt={group.name}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2327272a'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='10' dominant-baseline='middle' text-anchor='middle' fill='%2371717a'%3EInvalid Link%3C/text%3E%3C/svg%3E";
+                    }}
                   />
                   <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-20">
                     <h2 className="text-base sm:text-lg md:text-xl font-bold font-display tracking-tight text-white leading-tight line-clamp-2">{group.name}</h2>

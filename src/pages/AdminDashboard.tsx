@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                  {groups.map(group => (
                    <div key={group.id} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                      <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                       <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                       <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2327272a'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='10' dominant-baseline='middle' text-anchor='middle' fill='%2371717a'%3EInvalid Link%3C/text%3E%3C/svg%3E"; }} />
                      </div>
                      <div className="flex-grow min-w-0 flex flex-col justify-center">
                        <h3 className="font-bold text-white text-lg truncate">{group.name}</h3>
