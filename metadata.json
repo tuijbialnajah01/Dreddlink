@@ -1,0 +1,8 @@
+{
+  "name": "DʀΞᴅᴅLɪɴᴋ",
+  "description": "Premium dark-themed community group listing web app with admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
