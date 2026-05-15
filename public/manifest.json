@@ -7,14 +7,9 @@
   "theme_color": "#09090b",
   "icons": [
     {
-      "src": "https://api.dicebear.com/9.x/shapes/svg?seed=DreddLink",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "https://api.dicebear.com/9.x/shapes/svg?seed=DreddLink",
-      "sizes": "512x512",
-      "type": "image/svg+xml"
+      "src": "https://i.postimg.cc/7LLjs3bX/In-Shot-20260515-165058229.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg"
     }
   ]
 }

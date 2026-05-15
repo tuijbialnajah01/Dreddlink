@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { Lock, ExternalLink } from 'lucide-react';
+import { Lock, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 
@@ -35,56 +35,113 @@ export default function PublicView() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden text-center">
+    <div className="min-h-screen flex flex-col bg-base-950 relative overflow-hidden">
       
       {/* Decorative background gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent-primary/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-accent-primary/20 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-[30%] left-[50%] -translate-x-1/2 w-[60%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <header className="z-10 mb-16 text-center">
-        <motion.h1 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-5xl md:text-6xl font-display font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
-        >
-          DʀΞᴅᴅLɪɴᴋ
-        </motion.h1>
+      {/* Top Navigation */}
+      <header className="z-30 w-full glass sticky top-0 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-black/50 border border-white/10">
+              <img 
+                src="https://i.postimg.cc/7LLjs3bX/In-Shot-20260515-165058229.jpg" 
+                alt="DreddLink Logo" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            <span className="text-2xl font-display font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+              DʀΞᴅᴅLɪɴᴋ
+            </span>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+             <Link 
+                to="/admin" 
+                className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-white/5"
+              >
+                <Lock className="w-4 h-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+          </motion.div>
+        </div>
       </header>
 
-      <main className="z-10 w-full max-w-6xl flex-grow mb-16 px-2 sm:px-0">
+      <main className="z-10 w-full max-w-7xl mx-auto flex-grow px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-primary"></div>
+          <div className="flex justify-center items-center h-[50vh]">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="relative w-16 h-16 flex items-center justify-center"
+            >
+              <div className="absolute inset-0 border-t-2 border-b-2 border-accent-primary rounded-full animate-spin"></div>
+              <div className="absolute inset-2 border-r-2 border-l-2 border-purple-500 rounded-full animate-spin direction-reverse" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+            </motion.div>
           </div>
         ) : groups.length === 0 ? (
-          <div className="text-center py-20 glass-card mx-auto max-w-2xl">
-            <h3 className="text-xl text-gray-300 font-medium">No communities available yet</h3>
-            <p className="text-gray-500 mt-2">Check back later for exciting groups.</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center py-20 px-6 glass-card mx-auto max-w-lg mt-10 md:mt-20"
+          >
+            <div className="w-16 h-16 hover:rotate-12 transition-transform duration-500 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <ExternalLink className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-2xl text-white font-display font-medium tracking-tight">No Communities Yet</h3>
+            <p className="text-gray-400 mt-3 text-sm sm:text-base leading-relaxed">We're curating the best groups. Check back soon for exclusive access to premium communities.</p>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8 w-full">
-            {groups.map((group, index) => (
+          <motion.div 
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 w-full"
+          >
+            {groups.map((group) => (
               <motion.div 
                 key={group.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="glass-card flex flex-col overflow-hidden group"
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.95 },
+                  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                }}
+                className="glass-card flex flex-col overflow-hidden group shadow-black/50 hover:shadow-accent-primary/20"
               >
-                <div className="aspect-square overflow-hidden relative">
-                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-base-900/90 to-transparent z-10" />
+                <div className="aspect-square overflow-hidden relative bg-base-900">
+                   <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
                    <img 
                     src={group.imageUrl} 
                     alt={group.name}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2327272a'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='10' dominant-baseline='middle' text-anchor='middle' fill='%2371717a'%3EInvalid Link%3C/text%3E%3C/svg%3E";
                     }}
                   />
-                  <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-20">
-                    <h2 className="text-base sm:text-lg md:text-xl font-bold font-display tracking-tight text-white leading-tight line-clamp-2">{group.name}</h2>
+                  <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-20 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+                    <h2 className="text-base sm:text-lg md:text-xl font-bold font-display tracking-tight text-white leading-tight line-clamp-2 drop-shadow-lg">{group.name}</h2>
                   </div>
                 </div>
                 <div className="p-3 sm:p-5 flex-grow flex items-end">
@@ -92,25 +149,18 @@ export default function PublicView() {
                     href={group.joinLink} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-full inline-flex justify-center items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/10 text-sm sm:text-base"
+                    className="relative w-full inline-flex justify-center items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium transition-all duration-300 border border-white/5 hover:border-white/20 text-sm sm:text-base overflow-hidden group/btn"
                   >
-                    Join <span className="hidden sm:inline">Group</span> <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/0 via-accent-primary/10 to-accent-primary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                    <span className="relative z-10">Join <span className="hidden sm:inline">Group</span></span>
+                    <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                   </a>
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </main>
-
-      <footer className="z-10 mt-auto pb-4 pt-12 flex justify-center w-full">
-        <Link 
-          to="/admin" 
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors opacity-60 hover:opacity-100"
-        >
-          <Lock className="w-4 h-4" /> Admin Login
-        </Link>
-      </footer>
     </div>
   );
 }
