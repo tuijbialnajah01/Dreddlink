@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Group": {
+      "title": "Community Group",
+      "description": "Represents a community group listing.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the group"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL of the group avatar/image"
+        },
+        "joinLink": {
+          "type": "string",
+          "description": "The URL to join the group"
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Whether the group is visible to the public or hidden"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["name", "imageUrl", "joinLink", "isPublic", "createdAt", "updatedAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Represents an admin user.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "The email of the admin"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/groups/{groupId}": {
+      "schema": {
+        "$ref": "#/entities/Group"
+      },
+      "description": "Collection of groups"
+    },
+    "/admins/{adminId}": {
+      "schema": {
+        "$ref": "#/entities/Admin"
+      },
+      "description": "Collection of admin users. Admin document ID should be their UID or a generated ID, but we check if request.auth.token.email is in an admin document or match their UID."
+    }
+  }
+}

@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email_verified == true && 
+             (request.auth.token.email in [
+               'kamranaliarts69@gmail.com',
+               'nadiaparveen1526@gmail.com',
+               'tuijbialnajah@gmail.com',
+               'pintrestk11@gmail.com'
+             ] || 
+              exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    function isValidAdmin(data) {
+      return data.keys().hasAll(['email', 'createdAt']) &&
+             data.keys().size() == 2 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.createdAt == request.time;
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(adminId) && isValidAdmin(incoming());
+      allow update: if false; // admins are immutable besides deletion
+      allow delete: if isAdmin();
+    }
+
+    function isValidGroupCreate(data) {
+      return data.keys().hasAll(['name', 'imageUrl', 'joinLink', 'isPublic', 'createdAt', 'updatedAt']) &&
+             data.keys().size() == 6 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.imageUrl is string && data.imageUrl.size() <= 500 &&
+             data.joinLink is string && data.joinLink.size() <= 500 &&
+             data.isPublic is bool &&
+             data.createdAt == request.time &&
+             data.updatedAt == request.time;
+    }
+
+    function isGroupUpdateAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly(['name', 'imageUrl', 'joinLink', 'isPublic', 'updatedAt']);
+    }
+
+    function isValidGroupUpdate(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.imageUrl is string && data.imageUrl.size() <= 500 &&
+             data.joinLink is string && data.joinLink.size() <= 500 &&
+             data.isPublic is bool &&
+             data.updatedAt == request.time &&
+             data.createdAt == existing().createdAt;
+    }
+
+    match /groups/{groupId} {
+      allow get: if existing().isPublic == true || isAdmin();
+      allow list: if resource.data.isPublic == true || isAdmin();
+      
+      allow create: if isAdmin() && isValidId(groupId) && isValidGroupCreate(incoming());
+      allow update: if isAdmin() && isValidId(groupId) && isGroupUpdateAction() && isValidGroupUpdate(incoming());
+      allow delete: if isAdmin() && isValidId(groupId);
+    }
+  }
+}
