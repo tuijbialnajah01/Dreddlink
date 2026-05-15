@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dreddlink-cache-v3';
+const CACHE_NAME = 'dreddlink-cache-v4';
 const urlsToCache = [
   '/',
   '/index.html'
@@ -56,31 +56,25 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For everything else (HTML, JS, CSS, API calls), use Network-First
+  // For everything else (HTML, JS, CSS, API calls), use Stale-While-Revalidate
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Only cache valid responses
-        if (response && response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
+    caches.match(event.request).then(cachedResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
+          const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, responseToCache);
           });
         }
-        return response;
-      })
-      .catch(() => {
-        // If network fails, try to return from cache
-        return caches.match(event.request).then(response => {
-          if (response) {
-            return response;
-          }
-          // Offline fallback for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-          return undefined;
-        });
-      })
+        return networkResponse;
+      }).catch(() => {
+        // Fallback for failed network
+        if (!cachedResponse && event.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+      });
+      
+      return cachedResponse || fetchPromise;
+    })
   );
 });
