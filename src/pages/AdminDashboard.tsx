@@ -519,7 +519,7 @@ export default function AdminDashboard() {
                        return (
                        <div key={broadcast.id} className={`flex flex-col sm:flex-row gap-4 p-4 border-2 transition-colors ${isExpired ? 'opacity-50 border-red-500/30' : 'border-[#333] hover:border-white'}`}>
                          <div className="w-32 aspect-video shrink-0 border-2 border-[#333]">
-                           <img src={broadcast.imageUrl} alt="Broadcast" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                           <img src={broadcast.imageUrl} alt="Broadcast" className="w-full h-full object-contain bg-black" referrerPolicy="no-referrer" />
                          </div>
                          <div className="flex-grow min-w-0 flex flex-col justify-center font-mono">
                            <div className="text-xs text-gray-400 uppercase tracking-widest mt-0.5">Expires At</div>

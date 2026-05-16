@@ -113,7 +113,7 @@ export default function PublicView() {
             <img 
               src={broadcasts[0].imageUrl} 
               alt="Announcement" 
-              className="w-full aspect-[21/9] sm:aspect-[32/9] object-cover border-b-2 border-[#333]" 
+              className="w-full h-auto max-h-[300px] sm:max-h-[400px] object-contain bg-black border-b-2 border-[#333]" 
               referrerPolicy="no-referrer"
             />
             <div className="p-3 sm:p-4 flex justify-between items-center bg-base-950">
