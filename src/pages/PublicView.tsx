@@ -11,7 +11,10 @@ interface Group {
   imageUrl: string;
   joinLink: string;
   isPublic: boolean;
+  category?: string;
 }
+
+const CATEGORIES = ['Battleground', 'Auction', 'Tournament', 'General'];
 
 export default function PublicView() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -99,62 +102,66 @@ export default function PublicView() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="text-center py-20 px-6 mx-auto mt-10 md:mt-20"
           >
-            <h3 className="text-xl sm:text-2xl text-gray-400 font-medium tracking-tight">No groups available</h3>
+            <h3 className="text-xl sm:text-2xl text-gray-400 font-medium tracking-tight">
+              No groups available
+            </h3>
           </motion.div>
         ) : (
-          <motion.div 
-            initial="hidden"
-            animate="show"
-            variants={{
-              hidden: { opacity: 0 },
-              show: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1
-                }
-              }
-            }}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 w-full"
-          >
-            {groups.map((group) => (
-              <motion.div 
-                key={group.id}
-                variants={{
-                  hidden: { opacity: 0, y: 20, scale: 0.95 },
-                  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
-                }}
-                className="glass-card flex flex-col overflow-hidden group shadow-black/50 hover:shadow-accent-primary/20"
-              >
-                <div className="aspect-square overflow-hidden relative bg-base-900">
-                   <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
-                   <img 
-                    src={group.imageUrl} 
-                    alt={group.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2327272a'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='10' dominant-baseline='middle' text-anchor='middle' fill='%2371717a'%3EInvalid Link%3C/text%3E%3C/svg%3E";
-                    }}
-                  />
-                  <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-20 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                    <h2 className="text-base sm:text-lg md:text-xl font-bold font-display tracking-tight text-white leading-tight line-clamp-2 drop-shadow-lg">{group.name}</h2>
+          <div className="flex flex-col gap-10 sm:gap-14 w-full">
+            {CATEGORIES.map(category => {
+              const categoryGroups = groups.filter(g => (g.category || 'General') === category);
+              
+              if (categoryGroups.length === 0) return null;
+
+              return (
+                <div key={category} className="w-full">
+                  <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
+                    <span className="w-2 h-6 rounded-full bg-accent-primary"></span>
+                    {category}
+                  </h3>
+                  <div className="flex overflow-x-auto gap-4 sm:gap-6 pb-6 no-scrollbar snap-x scroll-smooth">
+                    {categoryGroups.map((group, index) => (
+                      <motion.div 
+                        key={group.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className="shrink-0 w-[260px] sm:w-[280px] lg:w-[320px] glass-card flex flex-col overflow-hidden group shadow-black/50 hover:shadow-accent-primary/20 snap-start"
+                      >
+                        <div className="aspect-[4/3] overflow-hidden relative bg-base-900 border-b border-white/5">
+                           <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+                           <img 
+                            src={group.imageUrl} 
+                            alt={group.name}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2327272a'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='10' dominant-baseline='middle' text-anchor='middle' fill='%2371717a'%3EInvalid Link%3C/text%3E%3C/svg%3E";
+                            }}
+                          />
+                          <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-20 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+                            <h2 className="text-base sm:text-lg md:text-xl font-bold font-display tracking-tight text-white leading-tight line-clamp-2 drop-shadow-md">{group.name}</h2>
+                          </div>
+                        </div>
+                        <div className="p-3 sm:p-5 flex-grow flex items-end">
+                          <a 
+                            href={group.joinLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="relative w-full inline-flex justify-center items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium transition-all duration-300 border border-white/5 hover:border-white/20 text-sm sm:text-base overflow-hidden group/btn"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/0 via-accent-primary/10 to-accent-primary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                            <span className="relative z-10">Join <span className="hidden sm:inline">Group</span></span>
+                            <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                          </a>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
-                <div className="p-3 sm:p-5 flex-grow flex items-end">
-                  <a 
-                    href={group.joinLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="relative w-full inline-flex justify-center items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium transition-all duration-300 border border-white/5 hover:border-white/20 text-sm sm:text-base overflow-hidden group/btn"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/0 via-accent-primary/10 to-accent-primary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
-                    <span className="relative z-10">Join <span className="hidden sm:inline">Group</span></span>
-                    <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                  </a>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+              );
+            })}
+          </div>
         )}
       </main>
     </div>

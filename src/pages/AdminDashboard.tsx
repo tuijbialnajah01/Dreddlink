@@ -10,6 +10,7 @@ interface Group {
   imageUrl: string;
   joinLink: string;
   isPublic: boolean;
+  category: string;
   createdAt: any;
   updatedAt: any;
 }
@@ -23,7 +24,7 @@ export default function AdminDashboard() {
   // Form State
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState('');
-  const [formData, setFormData] = useState({ name: '', imageUrl: '', joinLink: '', isPublic: true });
+  const [formData, setFormData] = useState({ name: '', imageUrl: '', joinLink: '', isPublic: true, category: 'General' });
   const [formLoading, setFormLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -71,7 +72,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     await logout();
-    setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true });
+    setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true, category: 'General' });
     setIsEditing(false);
     setErrorMsg('');
   };
@@ -89,6 +90,7 @@ export default function AdminDashboard() {
           imageUrl: formData.imageUrl,
           joinLink: formData.joinLink,
           isPublic: formData.isPublic,
+          category: formData.category,
           updatedAt: serverTimestamp()
         });
       } else {
@@ -98,12 +100,13 @@ export default function AdminDashboard() {
           imageUrl: formData.imageUrl,
           joinLink: formData.joinLink,
           isPublic: formData.isPublic,
+          category: formData.category,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
       }
       
-      setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true });
+      setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true, category: 'General' });
       setIsEditing(false);
       setEditId('');
     } catch (error: any) {
@@ -122,7 +125,8 @@ export default function AdminDashboard() {
       name: group.name,
       imageUrl: group.imageUrl,
       joinLink: group.joinLink,
-      isPublic: group.isPublic
+      isPublic: group.isPublic,
+      category: group.category || 'General'
     });
     setEditId(group.id);
     setIsEditing(true);
@@ -246,6 +250,20 @@ export default function AdminDashboard() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
+                <select 
+                  value={formData.category}
+                  onChange={e => setFormData({...formData, category: e.target.value})}
+                  className="w-full bg-base-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary/50 transition-all appearance-none"
+                >
+                  <option value="Battleground">Battleground</option>
+                  <option value="Auction">Auction</option>
+                  <option value="Tournament">Tournament</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+
               <div className="flex items-center pt-2">
                 <input 
                   type="checkbox" 
@@ -273,7 +291,7 @@ export default function AdminDashboard() {
                     type="button" 
                     onClick={() => {
                       setIsEditing(false);
-                      setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true });
+                      setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true, category: 'General' });
                       setEditId('');
                     }}
                     className="px-4 py-2.5 bg-base-800 hover:bg-base-700 text-white rounded-lg transition-colors border border-white/10"
@@ -311,6 +329,7 @@ export default function AdminDashboard() {
                      </div>
                      <div className="flex-grow min-w-0 flex flex-col justify-center">
                        <h3 className="font-bold text-white text-lg truncate">{group.name}</h3>
+                       <div className="text-xs text-accent-primary uppercase tracking-wider font-semibold mt-0.5">{group.category || 'General'}</div>
                        <div className="flex items-center gap-3 text-sm text-gray-400 mt-1">
                          {group.isPublic ? (
                            <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="w-3.5 h-3.5" /> Public</span>
