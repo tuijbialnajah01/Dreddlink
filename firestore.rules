@@ -87,8 +87,8 @@ service cloud.firestore {
     }
 
     match /broadcasts/{broadcastId} {
-      allow get: if existing().expiresAt > request.time || isAdmin();
-      allow list: if resource.data.expiresAt > request.time || isAdmin();
+      allow get: if true;
+      allow list: if true;
       allow create: if isAdmin() && isValidId(broadcastId) && isValidBroadcastCreate(incoming());
       allow delete: if isAdmin() && isValidId(broadcastId);
       allow update: if false; // broadcasts are immutable, just create new ones or delete
