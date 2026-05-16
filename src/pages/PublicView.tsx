@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { Lock, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Lock, ExternalLink, ShieldCheck, BarChart2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 
@@ -30,6 +30,14 @@ export default function PublicView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Log visit once per session
+    if (!sessionStorage.getItem('visited')) {
+      sessionStorage.setItem('visited', 'true');
+      addDoc(collection(db, 'visits'), { timestamp: serverTimestamp() }).catch(e => {
+        console.error('Failed to log visit', e);
+      });
+    }
+
     const q = query(collection(db, 'groups'), where('isPublic', '==', true));
     const unsubscribeGroups = onSnapshot(q, (snapshot) => {
       const groupsData: Group[] = [];
@@ -91,10 +99,18 @@ export default function PublicView() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex items-center gap-2 sm:gap-4"
           >
              <Link 
+                to="/stats" 
+                className="text-xs sm:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2 px-3 py-1.5 rounded-none border border-transparent hover:border-white uppercase tracking-widest font-mono"
+              >
+                <BarChart2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Stats</span>
+              </Link>
+             <Link 
                 to="/admin" 
-                className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2 px-3 py-1.5 rounded-none border border-transparent hover:border-white uppercase tracking-widest font-mono"
+                className="text-xs sm:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-2 px-3 py-1.5 rounded-none border border-transparent hover:border-white uppercase tracking-widest font-mono"
               >
                 <Lock className="w-4 h-4" />
                 <span className="hidden sm:inline">Admin</span>

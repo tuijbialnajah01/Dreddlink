@@ -93,5 +93,15 @@ service cloud.firestore {
       allow delete: if isAdmin() && isValidId(broadcastId);
       allow update: if false; // broadcasts are immutable, just create new ones or delete
     }
+    function isValidVisitCreate(data) {
+      return data.keys().hasAll(['timestamp']) &&
+             data.keys().size() == 1 &&
+             data.timestamp == request.time;
+    }
+
+    match /visits/{visitId} {
+      allow create: if isValidId(visitId) && isValidVisitCreate(incoming());
+      allow read: if true;
+    }
   }
 }

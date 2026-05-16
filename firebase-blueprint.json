@@ -75,6 +75,18 @@
         }
       },
       "required": ["imageUrl", "link", "expiresAt", "createdAt"]
+    },
+    "Visit": {
+      "title": "Visit",
+      "description": "Represents a single website visit.",
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of the visit"
+        }
+      },
+      "required": ["timestamp"]
     }
   },
   "firestore": {
@@ -95,6 +107,12 @@
         "$ref": "#/entities/Broadcast"
       },
       "description": "Collection of broadcasts."
+    },
+    "/visits/{visitId}": {
+      "schema": {
+        "$ref": "#/entities/Visit"
+      },
+      "description": "Collection of visits."
     }
   }
 }
