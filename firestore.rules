@@ -43,18 +43,19 @@ service cloud.firestore {
     }
 
     function isValidGroupCreate(data) {
-      return data.keys().hasAll(['name', 'imageUrl', 'joinLink', 'isPublic', 'createdAt', 'updatedAt']) &&
-             data.keys().size() == 6 &&
+      return data.keys().hasAll(['name', 'imageUrl', 'joinLink', 'isPublic', 'category', 'createdAt', 'updatedAt']) &&
+             data.keys().size() == 7 &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
              data.imageUrl is string && data.imageUrl.size() <= 500 &&
              data.joinLink is string && data.joinLink.size() <= 500 &&
              data.isPublic is bool &&
+             data.category is string && data.category.size() <= 50 &&
              data.createdAt == request.time &&
              data.updatedAt == request.time;
     }
 
     function isGroupUpdateAction() {
-      return incoming().diff(existing()).affectedKeys().hasOnly(['name', 'imageUrl', 'joinLink', 'isPublic', 'updatedAt']);
+      return incoming().diff(existing()).affectedKeys().hasOnly(['name', 'imageUrl', 'joinLink', 'isPublic', 'category', 'updatedAt']);
     }
 
     function isValidGroupUpdate(data) {
@@ -62,6 +63,7 @@ service cloud.firestore {
              data.imageUrl is string && data.imageUrl.size() <= 500 &&
              data.joinLink is string && data.joinLink.size() <= 500 &&
              data.isPublic is bool &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 50)) &&
              data.updatedAt == request.time &&
              data.createdAt == existing().createdAt;
     }

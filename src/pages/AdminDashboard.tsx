@@ -147,19 +147,18 @@ export default function AdminDashboard() {
   };
 
   if (authChecking) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-primary"></div></div>;
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin border-4 border-t-white border-white/20 h-12 w-12 border-solid rounded-none"></div></div>;
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent-primary/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative bg-base-950">
         <div className="glass-card p-10 max-w-md w-full flex flex-col items-center text-center">
-          <h2 className="text-3xl font-display font-bold mb-2">Admin Login</h2>
-          <p className="text-gray-400 mb-8">Sign in with your authorized Google account</p>
+          <h2 className="text-3xl font-display font-bold mb-2 uppercase tracking-widest text-white">Admin Access</h2>
+          <p className="text-gray-400 mb-8 font-mono text-sm">Sign in with authorized Google account</p>
           <button 
             onClick={handleLogin}
-            className="w-full py-4 bg-white text-black font-semibold rounded-xl hover:bg-gray-100 transition-colors flex items-center justify-center gap-3"
+            className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest border-2 border-transparent hover:border-black transition-colors flex items-center justify-center gap-3"
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
