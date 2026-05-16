@@ -49,7 +49,7 @@ export default function PublicView() {
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="flex items-center gap-3"
           >
-            <div className="w-10 h-10 overflow-hidden shrink-0 border-2 border-white">
+            <div className="w-10 h-10 overflow-hidden shrink-0">
               <img 
                 src="https://i.postimg.cc/7LLjs3bX/In-Shot-20260515-165058229.jpg" 
                 alt="DreddLink Logo" 
