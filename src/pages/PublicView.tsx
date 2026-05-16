@@ -14,15 +14,24 @@ interface Group {
   category?: string;
 }
 
+interface Broadcast {
+  id: string;
+  imageUrl: string;
+  link: string;
+  expiresAt: any;
+  createdAt: any;
+}
+
 const CATEGORIES = ['Battleground', 'Auction', 'Tournament', 'General'];
 
 export default function PublicView() {
   const [groups, setGroups] = useState<Group[]>([]);
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const q = query(collection(db, 'groups'), where('isPublic', '==', true));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribeGroups = onSnapshot(q, (snapshot) => {
       const groupsData: Group[] = [];
       snapshot.forEach(doc => {
         groupsData.push({ id: doc.id, ...doc.data() } as Group);
@@ -34,7 +43,24 @@ export default function PublicView() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const b = query(collection(db, 'broadcasts'));
+    const unsubscribeBroadcasts = onSnapshot(b, (snapshot) => {
+      const broadcastData: Broadcast[] = [];
+      snapshot.forEach(doc => {
+        broadcastData.push({ id: doc.id, ...doc.data() } as Broadcast);
+      });
+      // Filter out expired broadcasts and sort by newest
+      const activeBroadcasts = broadcastData
+        .filter(b => b.expiresAt && b.expiresAt.toDate() > new Date())
+        .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+        
+      setBroadcasts(activeBroadcasts);
+    });
+
+    return () => {
+      unsubscribeGroups();
+      unsubscribeBroadcasts();
+    };
   }, []);
 
   return (
@@ -76,6 +102,45 @@ export default function PublicView() {
           </motion.div>
         </div>
       </header>
+
+      {broadcasts.length > 0 && (
+        <div className="w-full px-4 sm:px-6 lg:px-8 mt-6 max-w-7xl mx-auto z-20 relative">
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full overflow-hidden border-2 border-[#333] relative group"
+          >
+            <img 
+              src={broadcasts[0].imageUrl} 
+              alt="Announcement" 
+              className="w-full aspect-[21/9] sm:aspect-[32/9] object-cover" 
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-base-950 via-transparent to-transparent flex items-end justify-between p-4 sm:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+               <h3 className="font-mono text-white text-sm sm:text-base font-bold uppercase tracking-widest hidden sm:block">Update</h3>
+               <a 
+                 href={broadcasts[0].link}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="bg-white text-black hover:bg-gray-200 px-6 py-2 sm:py-3 text-xs sm:text-sm font-bold uppercase tracking-widest transition-colors w-full flex-shrink-0 sm:w-auto text-center"
+               >
+                 View Now
+               </a>
+            </div>
+            {/* Always visible button for mobile */}
+            <div className="absolute bottom-4 left-4 right-4 sm:hidden">
+              <a 
+                 href={broadcasts[0].link}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="bg-white text-black hover:bg-gray-200 px-4 py-2 text-xs font-bold uppercase tracking-widest w-full text-center block shadow-lg border-2 border-transparent"
+               >
+                 View Update
+               </a>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       <main className="z-10 w-full max-w-7xl mx-auto flex-grow px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {loading ? (
@@ -134,7 +199,7 @@ export default function PublicView() {
                             }}
                           />
                         </div>
-                        <h2 className="text-[12px] sm:text-[14px] font-mono font-bold text-white text-center leading-tight line-clamp-2 mb-2 sm:mb-3 w-full px-0.5 min-h-[34px] sm:min-h-[40px] flex items-center justify-center uppercase">
+                        <h2 className="text-[12px] sm:text-[14px] font-sans font-bold text-white text-center leading-tight line-clamp-3 mb-2 sm:mb-3 w-full px-0.5 min-h-[34px] sm:min-h-[40px] flex items-center justify-center break-words">
                           {group.name}
                         </h2>
                         <a 

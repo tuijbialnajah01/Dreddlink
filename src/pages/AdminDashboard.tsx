@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, doc, setDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType, auth, signInWithGoogle, logout } from '../lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { Plus, Trash2, Edit2, CheckCircle2, XCircle, LogOut } from 'lucide-react';
+import { Radio, Plus, Trash2, Edit2, CheckCircle2, XCircle, LogOut } from 'lucide-react';
 
 interface Group {
   id: string;
@@ -15,17 +15,32 @@ interface Group {
   updatedAt: any;
 }
 
+interface Broadcast {
+  id: string;
+  imageUrl: string;
+  link: string;
+  expiresAt: any;
+  createdAt: any;
+}
+
 export default function AdminDashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
+  const [activeTab, setActiveTab] = useState<'groups' | 'broadcast'>('groups');
 
-  // Form State
+  // Group Form State
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState('');
   const [formData, setFormData] = useState({ name: '', imageUrl: '', joinLink: '', isPublic: true, category: 'General' });
   const [formLoading, setFormLoading] = useState(false);
+  
+  // Broadcast State
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
+  const [broadcastForm, setBroadcastForm] = useState({ imageUrl: '', link: '', durationHours: 24 });
+  const [broadcastFormLoading, setBroadcastFormLoading] = useState(false);
+
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -59,7 +74,19 @@ export default function AdminDashboard() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const b = query(collection(db, 'broadcasts'));
+    const unsubscribeBroadcasts = onSnapshot(b, (snapshot) => {
+      const broadcastData: Broadcast[] = [];
+      snapshot.forEach(doc => {
+        broadcastData.push({ id: doc.id, ...doc.data() } as Broadcast);
+      });
+      setBroadcasts(broadcastData);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeBroadcasts();
+    };
   }, [user]);
 
   const handleLogin = async () => {
@@ -146,6 +173,42 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleBroadcastSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setBroadcastFormLoading(true);
+    
+    try {
+      const newDocRef = doc(collection(db, 'broadcasts'));
+      await setDoc(newDocRef, {
+        imageUrl: broadcastForm.imageUrl,
+        link: broadcastForm.link,
+        expiresAt: new Date(Date.now() + broadcastForm.durationHours * 60 * 60 * 1000),
+        createdAt: serverTimestamp()
+      });
+      
+      setBroadcastForm({ imageUrl: '', link: '', durationHours: 24 });
+    } catch (error: any) {
+      console.error(error);
+      setErrorMsg(error.message || 'An error occurred while saving broadcast.');
+      try {
+        handleFirestoreError(error, OperationType.CREATE, 'broadcasts');
+      } catch (err) {}
+    } finally {
+      setBroadcastFormLoading(false);
+    }
+  };
+
+  const handleDeleteBroadcast = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this broadcast?')) {
+      try {
+        await deleteDoc(doc(db, 'broadcasts', id));
+      } catch (error: any) {
+        setErrorMsg(error.message || 'Error deleting broadcast');
+      }
+    }
+  };
+
   if (authChecking) {
     return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin border-4 border-t-white border-white/20 h-12 w-12 border-solid rounded-none"></div></div>;
   }
@@ -179,19 +242,34 @@ export default function AdminDashboard() {
 
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 border-b border-white/10 pb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Admin Dashboard</h1>
-          <p className="text-gray-400 mt-1">Manage DʀΞᴅᴅLɪɴᴋ community groups</p>
+          <h1 className="text-3xl font-display font-bold uppercase tracking-widest">Admin Dashboard</h1>
+          <p className="text-gray-400 mt-1 font-mono text-sm">Manage DʀΞᴅᴅLɪɴᴋ ecosystem</p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400 hidden sm:inline-block">{user.email}</span>
+          <span className="text-sm text-gray-400 hidden sm:inline-block font-mono">{user.email}</span>
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-gray-200 border border-transparent rounded-none text-sm font-bold uppercase tracking-widest transition-colors"
           >
             <LogOut className="w-4 h-4" /> Logout
           </button>
         </div>
       </header>
+
+      <div className="flex gap-4 mb-8">
+        <button 
+          onClick={() => setActiveTab('groups')}
+          className={`px-6 py-3 font-bold uppercase tracking-widest text-sm border-2 transition-all ${activeTab === 'groups' ? 'bg-white text-black border-white' : 'bg-transparent text-white border-[#333] hover:border-white'}`}
+        >
+          Groups
+        </button>
+        <button 
+          onClick={() => setActiveTab('broadcast')}
+          className={`px-6 py-3 font-bold uppercase tracking-widest text-sm border-2 transition-all flex items-center gap-2 ${activeTab === 'broadcast' ? 'bg-white text-black border-white' : 'bg-transparent text-white border-[#333] hover:border-white'}`}
+        >
+          <Radio className="w-4 h-4" /> Broadcast
+        </button>
+      </div>
 
       {errorMsg && (
          <div className="mb-8 p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-start gap-3">
@@ -201,165 +279,274 @@ export default function AdminDashboard() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Form Section */}
-        <div className="lg:col-span-1">
-          <form onSubmit={handleSubmit} className="glass-card p-6 sticky top-8">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-              {isEditing ? <><Edit2 className="w-5 h-5"/> Edit Group</> : <><Plus className="w-5 h-5"/> New Group</>}
-            </h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Group Name</label>
-                <input 
-                  type="text" 
-                  value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
-                  required
-                  maxLength={100}
-                  className="w-full bg-base-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary/50 transition-all"
-                  placeholder="e.g. Design Enthusiasts"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Image URL</label>
-                <input 
-                  type="url" 
-                  value={formData.imageUrl}
-                  onChange={e => setFormData({...formData, imageUrl: e.target.value})}
-                  required
-                  maxLength={500}
-                  className="w-full bg-base-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary/50 transition-all"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Join Link</label>
-                <input 
-                  type="url" 
-                  value={formData.joinLink}
-                  onChange={e => setFormData({...formData, joinLink: e.target.value})}
-                  required
-                  maxLength={500}
-                  className="w-full bg-base-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary/50 transition-all"
-                  placeholder="https://discord.gg/..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
-                <select 
-                  value={formData.category}
-                  onChange={e => setFormData({...formData, category: e.target.value})}
-                  className="w-full bg-base-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary/50 transition-all appearance-none"
-                >
-                  <option value="Battleground">Battleground</option>
-                  <option value="Auction">Auction</option>
-                  <option value="Tournament">Tournament</option>
-                  <option value="General">General</option>
-                </select>
-              </div>
-
-              <div className="flex items-center pt-2">
-                <input 
-                  type="checkbox" 
-                  id="isPublic"
-                  checked={formData.isPublic}
-                  onChange={e => setFormData({...formData, isPublic: e.target.checked})}
-                  className="w-4 h-4 rounded bg-base-800 border-white/20 text-accent-primary focus:ring-accent-primary focus:ring-offset-base-950"
-                />
-                <label htmlFor="isPublic" className="ml-2 text-sm font-medium text-gray-300">
-                  Visible to Public (isPublic)
-                </label>
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button 
-                  type="submit" 
-                  disabled={formLoading}
-                  className="flex-1 bg-accent-primary hover:bg-accent-hover text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
-                >
-                  {formLoading ? <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"/> : (isEditing ? 'Save Changes' : 'Create Group')}
-                </button>
+        {activeTab === 'groups' ? (
+          <>
+            {/* Form Section */}
+            <div className="lg:col-span-1">
+              <form onSubmit={handleSubmit} className="glass-card p-6 sticky top-8">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-wide">
+                  {isEditing ? <><Edit2 className="w-5 h-5"/> Edit Group</> : <><Plus className="w-5 h-5"/> New Group</>}
+                </h2>
                 
-                {isEditing && (
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setIsEditing(false);
-                      setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true, category: 'General' });
-                      setEditId('');
-                    }}
-                    className="px-4 py-2.5 bg-base-800 hover:bg-base-700 text-white rounded-lg transition-colors border border-white/10"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
+                <div className="space-y-4 font-mono">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-widest">Group Name</label>
+                    <input 
+                      type="text" 
+                      value={formData.name}
+                      onChange={e => setFormData({...formData, name: e.target.value})}
+                      required
+                      maxLength={100}
+                      className="w-full bg-base-900 border-2 border-[#333] rounded-none px-4 py-2.5 text-white focus:outline-none focus:border-white transition-all"
+                      placeholder="e.g. Design Enthusiasts"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-widest">Image URL</label>
+                    <input 
+                      type="url" 
+                      value={formData.imageUrl}
+                      onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+                      required
+                      maxLength={500}
+                      className="w-full bg-base-900 border-2 border-[#333] rounded-none px-4 py-2.5 text-white focus:outline-none focus:border-white transition-all"
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-widest">Join Link</label>
+                    <input 
+                      type="url" 
+                      value={formData.joinLink}
+                      onChange={e => setFormData({...formData, joinLink: e.target.value})}
+                      required
+                      maxLength={500}
+                      className="w-full bg-base-900 border-2 border-[#333] rounded-none px-4 py-2.5 text-white focus:outline-none focus:border-white transition-all"
+                      placeholder="https://discord.gg/..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-widest">Category</label>
+                    <select 
+                      value={formData.category}
+                      onChange={e => setFormData({...formData, category: e.target.value})}
+                      className="w-full bg-base-900 border-2 border-[#333] rounded-none px-4 py-2.5 text-white focus:outline-none focus:border-white transition-all appearance-none"
+                    >
+                      <option value="Battleground">Battleground</option>
+                      <option value="Auction">Auction</option>
+                      <option value="Tournament">Tournament</option>
+                      <option value="General">General</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center pt-2">
+                    <input 
+                      type="checkbox" 
+                      id="isPublic"
+                      checked={formData.isPublic}
+                      onChange={e => setFormData({...formData, isPublic: e.target.checked})}
+                      className="w-4 h-4 rounded-none bg-base-900 border-[#333] text-white focus:ring-0 focus:ring-offset-0 accent-white"
+                    />
+                    <label htmlFor="isPublic" className="ml-2 text-sm font-bold uppercase tracking-widest text-gray-300">
+                      Visible
+                    </label>
+                  </div>
+
+                  <div className="pt-4 flex gap-3">
+                    <button 
+                      type="submit" 
+                      disabled={formLoading}
+                      className="flex-1 bg-white hover:bg-gray-200 text-black font-bold uppercase tracking-widest py-3 px-4 transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
+                    >
+                      {formLoading ? <div className="w-5 h-5 border-2 border-t-transparent border-black rounded-full animate-spin"/> : (isEditing ? 'Save' : 'Create')}
+                    </button>
+                    
+                    {isEditing && (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setIsEditing(false);
+                          setFormData({ name: '', imageUrl: '', joinLink: '', isPublic: true, category: 'General' });
+                          setEditId('');
+                        }}
+                        className="px-4 py-3 bg-transparent hover:bg-[#333] border-2 border-[#333] text-white font-bold uppercase tracking-widest transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
 
-        {/* List Section */}
-        <div className="lg:col-span-2">
-           <div className="glass-card p-6 h-full min-h-[500px]">
-             <h2 className="text-xl font-bold mb-6 flex items-center justify-between">
-               Groups List
-               <span className="text-sm font-normal text-gray-400 bg-white/5 py-1 px-3 rounded-full border border-white/10">
-                 {groups.length} Total
-               </span>
-             </h2>
+            {/* List Section */}
+            <div className="lg:col-span-2">
+               <div className="glass-card p-6 h-full min-h-[500px]">
+                 <h2 className="text-xl font-bold mb-6 flex items-center justify-between uppercase tracking-wide">
+                   Groups List
+                   <span className="text-xs font-mono font-bold text-black bg-white py-1 px-3">
+                     {groups.length} Total
+                   </span>
+                 </h2>
 
-             {loading ? (
-               <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent-primary"></div></div>
-             ) : groups.length === 0 ? (
-               <div className="text-center py-16 text-gray-500 border border-dashed border-white/10 rounded-2xl">
-                 No groups found. Create one.
-               </div>
-             ) : (
-               <div className="space-y-4">
-                 {groups.map(group => (
-                   <div key={group.id} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                     <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                       <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2327272a'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='10' dominant-baseline='middle' text-anchor='middle' fill='%2371717a'%3EInvalid Link%3C/text%3E%3C/svg%3E"; }} />
-                     </div>
-                     <div className="flex-grow min-w-0 flex flex-col justify-center">
-                       <h3 className="font-bold text-white text-lg truncate">{group.name}</h3>
-                       <div className="text-xs text-accent-primary uppercase tracking-wider font-semibold mt-0.5">{group.category || 'General'}</div>
-                       <div className="flex items-center gap-3 text-sm text-gray-400 mt-1">
-                         {group.isPublic ? (
-                           <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="w-3.5 h-3.5" /> Public</span>
-                         ) : (
-                           <span className="flex items-center gap-1 text-yellow-400"><XCircle className="w-3.5 h-3.5" /> Hidden</span>
-                         )}
-                         <a href={group.joinLink} target="_blank" rel="noopener noreferrer" className="hover:text-accent-primary transition-colors truncate max-w-[200px]">
-                           {group.joinLink}
-                         </a>
-                       </div>
-                     </div>
-                     <div className="flex items-center gap-2 shrink-0">
-                       <button 
-                         onClick={() => handleEdit(group)}
-                         className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                       >
-                         <Edit2 className="w-4 h-4" />
-                       </button>
-                       <button 
-                         onClick={() => handleDelete(group.id)}
-                         className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                     </div>
+                 {loading ? (
+                   <div className="flex justify-center py-20"><div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent"></div></div>
+                 ) : groups.length === 0 ? (
+                   <div className="text-center py-16 text-gray-500 border-2 border-dashed border-[#333] font-mono">
+                     No groups found. Create one.
                    </div>
-                 ))}
+                 ) : (
+                   <div className="space-y-4">
+                     {groups.map(group => (
+                       <div key={group.id} className="flex flex-col sm:flex-row gap-4 p-4 bg-base-900 border-2 border-[#333] hover:border-white transition-colors">
+                         <div className="w-16 h-16 shrink-0 border-2 border-[#333]">
+                           <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover grayscale" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2327272a'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='10' dominant-baseline='middle' text-anchor='middle' fill='%2371717a'%3EInvalid Link%3C/text%3E%3C/svg%3E"; }} />
+                         </div>
+                         <div className="flex-grow min-w-0 flex flex-col justify-center">
+                           <h3 className="font-bold text-white text-lg truncate">{group.name}</h3>
+                           <div className="text-xs text-gray-400 uppercase tracking-widest font-mono mt-0.5">{group.category || 'General'}</div>
+                           <div className="flex items-center gap-3 text-sm text-gray-400 mt-1 font-mono">
+                             {group.isPublic ? (
+                               <span className="flex items-center gap-1 text-white"><CheckCircle2 className="w-3.5 h-3.5" /> Public</span>
+                             ) : (
+                               <span className="flex items-center gap-1 text-gray-500"><XCircle className="w-3.5 h-3.5" /> Hidden</span>
+                             )}
+                             <a href={group.joinLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors truncate max-w-[200px]">
+                               {group.joinLink}
+                             </a>
+                           </div>
+                         </div>
+                         <div className="flex items-center gap-2 shrink-0">
+                           <button 
+                             onClick={() => handleEdit(group)}
+                             className="p-2 text-gray-400 hover:text-white hover:bg-[#333] transition-colors border-2 border-transparent hover:border-[#333]"
+                           >
+                             <Edit2 className="w-4 h-4" />
+                           </button>
+                           <button 
+                             onClick={() => handleDelete(group.id)}
+                             className="p-2 text-gray-500 hover:text-white hover:bg-red-500/20 transition-colors border-2 border-transparent hover:border-red-500/20"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </button>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 )}
                </div>
-             )}
-           </div>
-        </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Broadcast Form Section */}
+            <div className="lg:col-span-1">
+              <form onSubmit={handleBroadcastSubmit} className="glass-card p-6 sticky top-8">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-wide">
+                  <Radio className="w-5 h-5"/> Post Broadcast
+                </h2>
+                
+                <div className="space-y-4 font-mono">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-widest">Image URL</label>
+                    <input 
+                      type="url" 
+                      value={broadcastForm.imageUrl}
+                      onChange={e => setBroadcastForm({...broadcastForm, imageUrl: e.target.value})}
+                      required
+                      maxLength={500}
+                      className="w-full bg-base-900 border-2 border-[#333] rounded-none px-4 py-2.5 text-white focus:outline-none focus:border-white transition-all"
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-widest">Target Link (Button)</label>
+                    <input 
+                      type="url" 
+                      value={broadcastForm.link}
+                      onChange={e => setBroadcastForm({...broadcastForm, link: e.target.value})}
+                      required
+                      maxLength={500}
+                      className="w-full bg-base-900 border-2 border-[#333] rounded-none px-4 py-2.5 text-white focus:outline-none focus:border-white transition-all"
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-2 uppercase tracking-widest">Duration (Hours): {broadcastForm.durationHours}h</label>
+                    <input 
+                      type="range"
+                      min="1"
+                      max="72"
+                      value={broadcastForm.durationHours}
+                      onChange={e => setBroadcastForm({...broadcastForm, durationHours: parseInt(e.target.value, 10)})}
+                      className="w-full accent-white"
+                    />
+                  </div>
+
+                  <div className="pt-4 flex gap-3">
+                    <button 
+                      type="submit" 
+                      disabled={broadcastFormLoading}
+                      className="flex-1 bg-white hover:bg-gray-200 text-black font-bold uppercase tracking-widest py-3 px-4 transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
+                    >
+                      {broadcastFormLoading ? <div className="w-5 h-5 border-2 border-t-transparent border-black rounded-full animate-spin"/> : 'Post Broadcast'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* Broadcast List Section */}
+            <div className="lg:col-span-2">
+               <div className="glass-card p-6 h-full min-h-[500px]">
+                 <h2 className="text-xl font-bold mb-6 flex items-center justify-between uppercase tracking-wide">
+                   Active Broadcasts
+                 </h2>
+
+                 {broadcasts.length === 0 ? (
+                   <div className="text-center py-16 text-gray-500 border-2 border-dashed border-[#333] font-mono">
+                     No active broadcasts.
+                   </div>
+                 ) : (
+                   <div className="space-y-4">
+                     {broadcasts.map(broadcast => {
+                       const isExpired = broadcast.expiresAt && broadcast.expiresAt.toDate() < new Date();
+                       return (
+                       <div key={broadcast.id} className={`flex flex-col sm:flex-row gap-4 p-4 border-2 transition-colors ${isExpired ? 'opacity-50 border-red-500/30' : 'border-[#333] hover:border-white'}`}>
+                         <div className="w-32 aspect-video shrink-0 border-2 border-[#333]">
+                           <img src={broadcast.imageUrl} alt="Broadcast" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                         </div>
+                         <div className="flex-grow min-w-0 flex flex-col justify-center font-mono">
+                           <div className="text-xs text-gray-400 uppercase tracking-widest mt-0.5">Expires At</div>
+                           <div className="text-white text-sm">
+                             {broadcast.expiresAt ? broadcast.expiresAt.toDate().toLocaleString() : 'Never'} 
+                             {isExpired && <span className="ml-2 text-red-500">[EXPIRED]</span>}
+                           </div>
+                           <a href={broadcast.link} target="_blank" rel="noopener noreferrer" className="hover:text-white text-gray-400 text-sm mt-2 transition-colors truncate max-w-[200px]">
+                             {broadcast.link}
+                           </a>
+                         </div>
+                         <div className="flex items-center gap-2 shrink-0">
+                           <button 
+                             onClick={() => handleDeleteBroadcast(broadcast.id)}
+                             className="p-2 text-gray-500 hover:text-white hover:bg-red-500/20 transition-colors border-2 border-transparent hover:border-red-500/20"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </button>
+                         </div>
+                       </div>
+                     )})}
+                   </div>
+                 )}
+               </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

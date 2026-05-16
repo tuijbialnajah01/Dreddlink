@@ -21,6 +21,10 @@
           "type": "boolean",
           "description": "Whether the group is visible to the public or hidden"
         },
+        "category": {
+          "type": "string",
+          "description": "The category the group belongs to"
+        },
         "createdAt": {
           "type": "string",
           "description": "Creation timestamp"
@@ -30,7 +34,7 @@
           "description": "Last updated timestamp"
         }
       },
-      "required": ["name", "imageUrl", "joinLink", "isPublic", "createdAt", "updatedAt"]
+      "required": ["name", "imageUrl", "joinLink", "isPublic", "category", "createdAt", "updatedAt"]
     },
     "Admin": {
       "title": "Admin",
@@ -47,6 +51,30 @@
         }
       },
       "required": ["email", "createdAt"]
+    },
+    "Broadcast": {
+      "title": "Broadcast",
+      "description": "Represents a global broadcast announcement.",
+      "type": "object",
+      "properties": {
+        "imageUrl": {
+          "type": "string",
+          "description": "Image URL for the broadcast"
+        },
+        "link": {
+          "type": "string",
+          "description": "Hyperlink for the broadcast action"
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "Expiration timestamp"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["imageUrl", "link", "expiresAt", "createdAt"]
     }
   },
   "firestore": {
@@ -60,7 +88,13 @@
       "schema": {
         "$ref": "#/entities/Admin"
       },
-      "description": "Collection of admin users. Admin document ID should be their UID or a generated ID, but we check if request.auth.token.email is in an admin document or match their UID."
+      "description": "Collection of admin users."
+    },
+    "/broadcasts/{broadcastId}": {
+      "schema": {
+        "$ref": "#/entities/Broadcast"
+      },
+      "description": "Collection of broadcasts."
     }
   }
 }
