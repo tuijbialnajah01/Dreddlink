@@ -108,34 +108,24 @@ export default function PublicView() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full overflow-hidden border-2 border-[#333] relative group"
+            className="w-full overflow-hidden border-2 border-[#333] flex flex-col group bg-base-900"
           >
             <img 
               src={broadcasts[0].imageUrl} 
               alt="Announcement" 
-              className="w-full aspect-[21/9] sm:aspect-[32/9] object-cover" 
+              className="w-full aspect-[21/9] sm:aspect-[32/9] object-cover border-b-2 border-[#333]" 
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-base-950 via-transparent to-transparent flex items-end justify-between p-4 sm:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-               <h3 className="font-mono text-white text-sm sm:text-base font-bold uppercase tracking-widest hidden sm:block">Update</h3>
+            <div className="p-3 sm:p-4 flex justify-between items-center bg-base-950">
+               <h3 className="font-mono text-white text-sm font-bold uppercase tracking-widest hidden sm:block">Update</h3>
+               <div className="sm:hidden"></div>
                <a 
                  href={broadcasts[0].link}
                  target="_blank"
                  rel="noopener noreferrer"
-                 className="bg-white text-black hover:bg-gray-200 px-6 py-2 sm:py-3 text-xs sm:text-sm font-bold uppercase tracking-widest transition-colors w-full flex-shrink-0 sm:w-auto text-center"
+                 className="bg-white text-black hover:bg-gray-200 px-8 py-2 text-xs sm:text-sm font-bold uppercase tracking-widest transition-colors text-center border-2 border-transparent"
                >
-                 View Now
-               </a>
-            </div>
-            {/* Always visible button for mobile */}
-            <div className="absolute bottom-4 left-4 right-4 sm:hidden">
-              <a 
-                 href={broadcasts[0].link}
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 className="bg-white text-black hover:bg-gray-200 px-4 py-2 text-xs font-bold uppercase tracking-widest w-full text-center block shadow-lg border-2 border-transparent"
-               >
-                 View Update
+                 Visit
                </a>
             </div>
           </motion.div>
